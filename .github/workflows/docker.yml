@@ -41,7 +41,7 @@ jobs:
 
       - name: Extract Version
         run: |
-          export MONERO_VERSION="$(git describe)"
+          export MONERO_VERSION="$(git describe --tags)"
           echo "MONERO_VERSION=$MONERO_VERSION" >> $GITHUB_ENV
 
       - name: Build and push latest Debian image
