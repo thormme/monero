@@ -49,5 +49,5 @@ jobs:
             linux/arm/v7
           push: ${{ github.event_name != 'pull_request' }}
           tags: |
-            thormme/devpi-client:latest
-            thormme/devpi-client:${{ env.MONERO_VERSION }}
+            thormme/monero:latest
+            thormme/monero:${{ env.MONERO_VERSION }}
