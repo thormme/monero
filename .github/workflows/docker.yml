@@ -1,13 +1,13 @@
-name: "build-docker"
+name: "ci/gh-actions/docker-image"
 
 on:
-  workflow_dispatch:
   push:
     branches:
       - "main"
       - "master"
-    paths:
-      - "./**"
+    paths-ignore:
+      - 'docs/**'
+      - '**/README.md'
   pull_request:
     branches:
       - "main"
