@@ -44,6 +44,7 @@
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/utility/string_ref.hpp>
 #include <boost/filesystem.hpp>
+#include <boost/asio.hpp>
 #include "misc_log_ex.h"
 #include "storages/parserse_base_utils.h"
 #include "hex.h"
@@ -76,11 +77,45 @@ namespace string_tools
       return "[failed]";
   }
   //----------------------------------------------------------------------------
+  bool get_ip_int32_from_hostname_string(uint32_t& ip, const std::string& hostname)
+  {
+    // Attempt to resolve string as hostname
+    try {
+      boost::asio::io_context io_context;
+      boost::asio::ip::tcp::resolver resolver(io_context);
+
+      // Get the ipv4 address result
+      boost::asio::ip::tcp::resolver::iterator endpoint_iterator = resolver.resolve(boost::asio::ip::tcp::v4(), hostname, "");
+
+      for (boost::asio::ip::tcp::resolver::iterator it = endpoint_iterator; it != boost::asio::ip::tcp::resolver::iterator(); ++it) {
+        try {
+          boost::asio::ip::tcp::endpoint endpoint = *it;
+          unsigned long hostname_address = endpoint.address().to_v4().to_ulong();
+          ip = boost::lexical_cast<uint32_t>(hostname_address);
+          return true;
+        } catch (std::exception& e) {
+          // Swallow the parsing error and try the next endpoint
+          continue;
+        }
+        return false;
+      }
+    } catch (std::exception& e) {
+      return false;
+    }
+    return false;
+  }
+  //----------------------------------------------------------------------------
   bool get_ip_int32_from_string(uint32_t& ip, const std::string& ip_str)
   {
     ip = inet_addr(ip_str.c_str());
-    if(INADDR_NONE == ip)
+    if (INADDR_NONE == ip) {
+      // If unable to parse ip directly, attempt to parse hostname
+      bool resolved_hostname_ip = get_ip_int32_from_hostname_string(ip, ip_str);
+      if (resolved_hostname_ip) {
+        return true;
+      }
       return false;
+    }
 
     return true;
   }
