@@ -1474,7 +1474,7 @@ std::string WalletImpl::prepareMultisig() {
     try {
         clearStatus();
 
-        if (m_wallet->multisig()) {
+        if (m_wallet->get_multisig_status().multisig_is_active) {
             throw runtime_error("Wallet is already multisig");
         }
 
@@ -1535,23 +1535,23 @@ std::string WalletImpl::getMultisigKeyExchangeBooster(const std::vector<std::str
     return string();
 }
 
-bool WalletImpl::finalizeMultisig(const vector<string>& extraMultisigInfo) {
-    try {
-        clearStatus();
-        checkMultisigWalletNotReady(m_wallet);
+// bool WalletImpl::finalizeMultisig(const vector<string>& extraMultisigInfo) {
+//     try {
+//         clearStatus();
+//         checkMultisigWalletNotReady(m_wallet);
 
-        if (m_wallet->finalize_multisig(epee::wipeable_string(m_password), extraMultisigInfo)) {
-            return true;
-        }
+//         if (m_wallet->finalize_multisig(epee::wipeable_string(m_password), extraMultisigInfo)) {
+//             return true;
+//         }
 
-        setStatusError(tr("Failed to finalize multisig wallet creation"));
-    } catch (const exception& e) {
-        LOG_ERROR("Error on finalizing multisig wallet creation: " << e.what());
-        setStatusError(string(tr("Failed to finalize multisig wallet creation: ")) + e.what());
-    }
+//         setStatusError(tr("Failed to finalize multisig wallet creation"));
+//     } catch (const exception& e) {
+//         LOG_ERROR("Error on finalizing multisig wallet creation: " << e.what());
+//         setStatusError(string(tr("Failed to finalize multisig wallet creation: ")) + e.what());
+//     }
 
-    return false;
-}
+//     return false;
+// }
 
 bool WalletImpl::exportMultisigImages(string& images, std::string filename, bool ascii) {
     try {
