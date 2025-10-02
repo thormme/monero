@@ -118,6 +118,12 @@ struct PendingTransaction
      * @return vector of base58-encoded signers' public keys
      */
     virtual std::vector<std::string> signersKeys() const = 0;
+
+    /**
+     * @brief dest_addresses
+     * @return vector of base58-encoded addresses of transaction recipients
+     */
+    virtual std::vector<std::string> dest_addresses() const = 0;
 };
 
 /**
@@ -794,6 +800,11 @@ struct Wallet
      */
     virtual std::string makeMultisig(const std::vector<std::string>& info, uint32_t threshold) = 0;
     /**
+     * @brief prepareMultisig - prepare a wallet for multisig by generating a multisig string to share with peers.
+     * @return multisig string to share with peers to create the multisig wallet.
+     */
+    virtual std::string prepareMultisig() = 0;
+    /**
      * @brief exchange_multisig_keys - provides additional key exchange round for arbitrary multisig schemes (like N-1/N, M/N)
      * @param info - base58 encoded key derivations returned by makeMultisig or exchangeMultisigKeys function call
      * @param force_update_use_with_caution - force multisig account to update even if not all signers contribute round messages
@@ -812,9 +823,11 @@ struct Wallet
     /**
      * @brief exportMultisigImages - exports transfers' key images
      * @param images - output paramter for hex encoded array of images
+     * @param filename - (optional) path to file where to save partial key images
+     * @param ascii - (optional) if true, encode data as ASCII readable
      * @return true if success
      */
-    virtual bool exportMultisigImages(std::string& images) = 0;
+    virtual bool exportMultisigImages(std::string& images, std::string filename = "", bool ascii = false) = 0;
     /**
      * @brief importMultisigImages - imports other participants' multisig images
      * @param images - array of hex encoded arrays of images obtained with exportMultisigImages
@@ -822,10 +835,29 @@ struct Wallet
      */
     virtual size_t importMultisigImages(const std::vector<std::string>& images) = 0;
     /**
+     * @brief importMultisigImages - imports other participants' multisig images
+     * @param filename - filename to load images from
+     * @return number of imported images
+     */
+    virtual size_t importMultisigImages(std::string filename) = 0;
+    /**
+     * @brief importMultisigImagesAscii - imports other participants' multisig images
+     * @param ascii - ascii encoded string including prefix
+     * @return number of imported images
+     */
+    virtual size_t importMultisigImagesAscii(std::string ascii) = 0;
+    /**
      * @brief hasMultisigPartialKeyImages - checks if wallet needs to import multisig key images from other participants
      * @return true if there are partial key images
      */
     virtual bool hasMultisigPartialKeyImages() const = 0;
+
+    /**
+     * @brief loadMultisigTxFromFile - grab transaction information encoded in a partially signed transction file
+     * @param filename - path of file to load
+     * @return PendingTransaction
+     */
+    virtual PendingTransaction* loadMultisigTxFromFile(std::string filename) = 0;
 
     /**
      * @brief restoreMultisigTransaction creates PendingTransaction from signData
@@ -833,6 +865,13 @@ struct Wallet
      * @return PendingTransaction
      */
     virtual PendingTransaction*  restoreMultisigTransaction(const std::string& signData) = 0;
+
+    /**
+     * @brief signMultisigTxFromFile load a transaction from file, sign it, then save it again
+     * @param filename path to file storing partially signed transaction
+     * @return true if successful
+     */
+    virtual bool signMultisigTxFromFile(const std::string filename) = 0;
 
     /*!
      * \brief createTransactionMultDest creates transaction with multiple destinations. if dst_addr is an integrated address, payment_id is ignored
